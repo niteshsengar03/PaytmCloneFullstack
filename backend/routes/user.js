@@ -49,6 +49,7 @@ const createPayload = req.body;
             message:"Error while loggin in"
         })
      else {
+        console.log(userexist);
         const userid = userexist._id;
         const token = jwt.sign({userid},JWT_SECRET);
         return res.status(200).json({
@@ -93,4 +94,17 @@ catch (er){
         message:"Updated succesfully"
     })
 })
+
+router.get("/bulk",async(req,res)=>{
+    const filter = req.query.filter || "";
+    const user = await User.find({
+        //"$or" either firstname is ture or lastName
+        "$or":[
+            {firstName:{"$regex":filter}},
+            {lastName:{"$regex":filter}}
+        ]
+    })
+    res.json(user);
+})
+
 module.exports = router;
