@@ -33,8 +33,22 @@ const UserSchema =  new mongoose.Schema({
     }
 });
 
+const accountSchema = new mongoose.Schema({
+    userId: {
+        type:mongoose.Types.ObjectId,
+        ref:'User', // this will make sure that i can not put anythin in account table that does not have a correspondance user in User table
+        required: true
+    },
+    balance: {
+        type:Number,
+        required: true
+    }
+})
+
 const User = mongoose.model('User',UserSchema);
+const Account = mongoose.model('Account',accountSchema);
 
 module.exports  = {
-   User
+   User,
+   Account
 };

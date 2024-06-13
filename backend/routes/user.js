@@ -2,7 +2,7 @@ const { Router } = require("express");
 const jwt = require("jsonwebtoken");
 const router = Router();
 const { userSchema, updateuserSchema } = require("../type");
-const { User } = require("../db");
+const { User, Account } = require("../db");
 const { JWT_SECRET } = require("../config");
 const { authMiddleware } = require("../middleware");
 
@@ -27,6 +27,12 @@ router.post("/signup", async (req, res) => {
     password,
   });
   const userId = user._id;
+
+  await Account.create({
+    userId,
+    balance: 1 + Math.random()*10000
+  })
+
   const token = jwt.sign({userId},JWT_SECRET);
    return res.status(200).json({
     message:"User created successfully",
@@ -56,6 +62,7 @@ const createPayload = req.body;
             token: token
         })
      }  
+
 })
 
 router.put("/",authMiddleware,async(req,res)=>{
@@ -71,7 +78,7 @@ router.put("/",authMiddleware,async(req,res)=>{
     const newlastName = req.body.newlastName;
     console.log(newlastName);
 
-    try {await User.updateOne({
+    await User.updateOne({
         _id: userId
     },
     {
@@ -81,11 +88,6 @@ router.put("/",authMiddleware,async(req,res)=>{
             lastName:newlastName
         }
     })
-    console.log("update");
-}
-catch (er){
-    console.log(er);
-}
     // if(newpassword<10)
     //     return req.status(411).json({
     //         message:"Error while updating information"
@@ -99,12 +101,20 @@ router.get("/bulk",async(req,res)=>{
     const filter = req.query.filter || "";
     const user = await User.find({
         //"$or" either firstname is ture or lastName
+        //"$reqex" to find the substring of our origina firstname or lastname
         "$or":[
             {firstName:{"$regex":filter}},
             {lastName:{"$regex":filter}}
         ]
     })
-    res.json(user);
+    res.json({
+        user: user.map(user =>({
+            username:user.username,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            _id: user._id
+        }))
+    });
 })
 
 module.exports = router;
