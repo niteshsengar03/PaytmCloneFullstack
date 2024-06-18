@@ -28,8 +28,6 @@ router.post("/transfer", authMiddleware, async (req, res) => {
     }
 
     const toAccount = await Account.findOne({ userId: to }).session(session);
-    console.log(to);
-    console.log(toAccount);
     if (!toAccount) {
         await session.abortTransaction();
         return res.status(400).json({
@@ -42,7 +40,7 @@ router.post("/transfer", authMiddleware, async (req, res) => {
         userId: req.userId,
         },
         {
-        //increase
+        //decrease
         $inc: { balance: -amount },
         }
     ).session(session);
@@ -63,6 +61,7 @@ router.post("/transfer", authMiddleware, async (req, res) => {
     });
 }catch(err){
     await session.abortTransaction();
+    console.log(err);
     return res.json({
             messgae:"somthing went wrong"
     })
